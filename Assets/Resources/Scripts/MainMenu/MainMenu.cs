@@ -1,0 +1,145 @@
+using UnityEngine;
+using UnityEngine.Analytics;
+using UnityEngine.SceneManagement;
+using System.Collections;
+using UnityEngine.UI;
+
+
+public class MainMenu : MonoBehaviour
+{
+    private GameObject SoundHandler;
+    private AudioSource audioSource;
+    private Canvas settings;
+    private Canvas main;
+    private Canvas play;
+    private SpriteRenderer genderSprite;
+    private SpriteRenderer shadowblob;
+
+    private bool isPlaying = false;
+
+    // i know its spaghetti code because this script is being used from different GameObjects, but it works (and regret later)
+
+    void Start()
+    {
+        string gender = PlayerPrefs.GetString("PlayerGender");
+        Animator animator = GameObject.Find("Gender Sprite").GetComponent<Animator>();
+
+             if (gender == "M") animator.runtimeAnimatorController = Resources.Load<RuntimeAnimatorController>("Animations/PlayerMale_Controller");
+        else if (gender == "F") animator.runtimeAnimatorController = Resources.Load<RuntimeAnimatorController>("Animations/PlayerFemale_Controller");
+        else                    animator.runtimeAnimatorController = Resources.Load<RuntimeAnimatorController>("Animations/PlayerNonbinary_Controller");
+    }
+    
+    void Update(){}
+
+    void Awake()
+    {
+        //sound
+        SoundHandler = GameObject.Find("SoundHandler");
+        audioSource = SoundHandler.GetComponent<AudioSource>();
+
+        //ui
+        settings = GameObject.Find("SettingsCanvas").GetComponent<Canvas>();
+        main = GameObject.Find("MainCanvas").GetComponent<Canvas>();
+        play = GameObject.Find("ContinueCanvas").GetComponent<Canvas>();
+        genderSprite = GameObject.Find("Gender Sprite").GetComponent<SpriteRenderer>();
+        shadowblob = GameObject.Find("Shadow Blob").GetComponent<SpriteRenderer>();
+    }
+
+    // Cancel Tutorial/Continue Page
+    public void ClickCancel() {
+        genderSprite.gameObject.SetActive(true);
+        main.enabled = true;
+        play.enabled = false;
+    }
+    
+    public void ClickPlay() {
+        genderSprite.gameObject.SetActive(false);
+        main.enabled = false;
+        play.enabled = true;
+    }
+
+    public void ClickTutorial() {
+        Debug.Log("Clicked Tutorial");
+        //SceneManager.LoadScene("Tutorial");
+
+    }
+
+    public void ClickContinue()
+    {
+        Debug.Log("Clicked Continue");
+        if (!isPlaying) {
+            audioSource.Play();
+            StartCoroutine(DramaticWait());
+        }
+    }
+
+    private IEnumerator DramaticWait() //coroutine
+    {
+        Debug.Log("Waiting for 5 seconds before loading the scene...");
+        audioSource.clip = Resources.Load<AudioClip>("Sound/eyecatch");
+        audioSource.Play();
+        yield return new WaitForSeconds(5f);
+        SceneManager.LoadScene("InGame");
+    }
+
+    public void ClickProgress() {
+        Debug.Log("Clicked Progress");
+        audioSource.Play();
+    }
+
+    public void ClickQuit()
+    {
+        // research about how to make the app quit based on OS (Android/iOS/etc.)
+
+        Debug.Log("Clicked Quit");
+        audioSource.Play();
+        UnityEditor.EditorApplication.isPlaying = false; // only applies to Unity Editor
+        Application.Quit(); // violates Apple's HCI, they prefer via home gestures
+        // Activity.moveTaskToBack for Android
+
+    }
+
+    public void ClickSettings() {
+
+ 
+        settings.enabled = true;
+        initiateMainMenu(false);
+
+        audioSource.Play();
+        Debug.Log("Clicked Settings");
+    }
+
+    public void ClickBack() {
+        audioSource.Play();
+        settings.enabled = false;
+        initiateMainMenu(true);
+
+        Debug.Log("Returned to main menu");
+    }
+    public void ClickFlashcards()
+    {
+        Debug.Log("Clicked Flashcards");
+        audioSource.Play();
+    }
+
+
+    public void ClickPlayer()
+    {
+        SceneManager.LoadScene("Player");
+        audioSource.Play();
+        Debug.Log("Edit Player");
+
+    }
+
+    public void playButtonAudio()
+    {
+        audioSource.Play();
+    }
+
+    public void initiateMainMenu(bool a)
+    {
+        main.enabled = a;
+        genderSprite.enabled = a;
+        shadowblob.enabled = a;
+    }
+}
