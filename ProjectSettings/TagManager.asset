@@ -20,6 +20,7 @@ TagManager:
   - Prop
   - Inv_Wall
   - Tower
+  - Canvas_Cutscene
   layers:
   - Default
   - TransparentFX

@@ -2,7 +2,7 @@
 using System;
 using System.Collections;
 using TMPro;
-using UnityEditor.Animations;
+// using UnityEditor.Animations;
 using UnityEngine;
 using UnityEngine.UI;
 //using static UnityEditor.Rendering.MaterialUpgrader;
@@ -18,7 +18,7 @@ public class NPC : MonoBehaviour
     public bool isModel;
 
     public SpriteRenderer npcSprite;
-    public AnimatorController animatorController;
+    public RuntimeAnimatorController animatorController;
     public Animator animator; // unused in Inspector
     private string currentMsg; // when currently in dialogue; null means not in dialogue
 

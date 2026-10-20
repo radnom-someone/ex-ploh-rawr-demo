@@ -1,56 +1,111 @@
+
 using UnityEngine;
 
 public class BillboardParallel : MonoBehaviour
 {
-    // Attach this script to any GameObject that uses 2D sprites or UI elements that you want to always face the camera.
-    private Transform camTransform;
-
     [Header("Settings")]
     [SerializeField] private bool lockElementRotation;
     [SerializeField] private bool tiltToCamera;
     [SerializeField] private bool flipped;
 
-    void Start()
+    private Transform camTransform;
+    private Camera currentCamera;
+
+    private Vector3 originalScale;
+
+    private void Start()
     {
-        lockElementRotation = false;
-        tiltToCamera = false;
-        flipped = false; // Declare default values in start() to stop the element from flipping left and right (seizure) whenever a value is overridden by the hierarchy's serializefield feature.
+        originalScale = transform.localScale;
 
-        if (Camera.main != null)
-        {
-            camTransform = Camera.main.transform;
-        }
-        else
-        {
-            Debug.LogError("No main camera found. (Have you tagged the main camera?)");
-        }
-
+        UpdateCameraReference();
     }
 
-    void LateUpdate()
+    private void LateUpdate()
     {
-        if (camTransform == null) return;
+        UpdateCameraReference();
 
+        if (camTransform == null)
+        {
+            return;
+        }
+
+        UpdateBillboardRotation();
+        UpdateFlip();
+    }
+
+    private void UpdateCameraReference()
+    {
+        Camera activeCamera = PlayerInteract.PLAYER_CAMERA;
+
+        // Fallback when no camera has been assigned by PlayerInteract.
+        if (activeCamera == null || !activeCamera.isActiveAndEnabled)
+        {
+            activeCamera = Camera.main;
+        }
+
+        // Only update the reference when the camera changes.
+        if (activeCamera != null && activeCamera != currentCamera)
+        {
+            currentCamera = activeCamera;
+            camTransform = currentCamera.transform;
+        }
+    }
+
+    private void UpdateBillboardRotation()
+    {
         if (lockElementRotation)
         {
-            // These keep the sprite perfectly vertical
             Vector3 targetPosition = camTransform.position;
+
+            // Keep the sprite upright by ignoring vertical differences.
             targetPosition.y = transform.position.y;
+
             if (tiltToCamera)
             {
-                transform.LookAt(targetPosition); // Tilts the sprite to match the camera's angle
+                Vector3 direction = targetPosition - transform.position;
+
+                if (direction.sqrMagnitude > 0.001f)
+                {
+                    transform.rotation = Quaternion.LookRotation(direction);
+                }
             }
-        }
-        if (flipped) // I put this here so it can be configured during runtime using the inspector
-        {
-            Vector3 scale = transform.localScale;
-            scale.x *= -1; // Mirror/flip the element horizontally
-            transform.localScale = scale;
+            else
+            {
+                Vector3 cameraForward = camTransform.forward;
+                cameraForward.y = 0f;
+
+                if (cameraForward.sqrMagnitude > 0.001f)
+                {
+                    transform.rotation =
+                        Quaternion.LookRotation(cameraForward);
+                }
+            }
         }
         else
         {
-            // Matches camera angle
+            // Match the active camera's orientation.
             transform.rotation = camTransform.rotation;
         }
+    }
+
+    private void UpdateFlip()
+    {
+        Vector3 scale = originalScale;
+
+        if (flipped)
+        {
+            scale.x = -originalScale.x;
+        }
+        else
+        {
+            scale.x = originalScale.x;
+        }
+
+        transform.localScale = scale;
+    }
+
+    public void SetFlipped(bool shouldFlip)
+    {
+        flipped = shouldFlip;
     }
 }

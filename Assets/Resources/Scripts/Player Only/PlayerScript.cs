@@ -39,6 +39,22 @@ public class PlayerInteract : MonoBehaviour
     void Start()
     {
         PlayerInteract.PLAYER = gameObject;
+
+        if (characterController == null)
+        {
+            characterController = GetComponent<CharacterController>();
+        }
+
+        if (mobileController == null)
+        {
+            mobileController = GetComponent<MobileController>();
+
+            if (mobileController == null)
+            {
+                mobileController = FindObjectOfType<MobileController>();
+            }
+        }
+
         GENDER = PlayerPrefs.GetString("PlayerGender");
         animator = transform.GetChild(1).GetComponent<Animator>();
        
@@ -106,8 +122,16 @@ public class PlayerInteract : MonoBehaviour
     private void CharacterMove()
     {
         moveVector = Vector3.zero;
-        moveVector.x = mobileController.Horizontal() * SPEED;
-        moveVector.z = mobileController.Vertical() * SPEED;
+        if (mobileController != null)
+        {
+            moveVector.x = mobileController.Horizontal() * SPEED;
+            moveVector.z = mobileController.Vertical() * SPEED;
+        }
+
+        if (characterController != null)
+        {
+            characterController.SimpleMove(moveVector);
+        }
 
         //characterController.Move(moveVector * Time.deltaTime); // without gravity
         characterController.SimpleMove(moveVector); // with gravity
@@ -118,13 +142,39 @@ public class PlayerInteract : MonoBehaviour
         PlayerPrefs.SetFloat("PlayerZ", transform.position.z);
         PlayerPrefs.Save();
 
-        SpriteRenderer spriteRenderer = transform.Find("Player Sprite").GetComponent<SpriteRenderer>();
-        if (moveVector.x > 0)      { this.isMirrored = false;}
-        else if (moveVector.x < 0) { this.isMirrored = true; }
-        spriteRenderer.flipX = this.isMirrored;
+        Transform playerSprite = transform.Find("Player Sprite");
 
-        if (moveVector.x != 0 || moveVector.y != 0) animator.SetBool("isMoving", true);
-        else                                        animator.SetBool("isMoving", false);
+        if (playerSprite != null)
+        {
+            SpriteRenderer spriteRenderer =
+                playerSprite.GetComponent<SpriteRenderer>();
+
+            if (spriteRenderer != null)
+            {
+                if (moveVector.x > 0)
+                {
+                    isMirrored = false;
+                }
+                else if (moveVector.x < 0)
+                {
+                    isMirrored = true;
+                }
+
+                spriteRenderer.flipX = isMirrored;
+            }
+        }
+
+        if (animator != null)
+        {
+            if (moveVector.x != 0 || moveVector.z != 0)
+            {
+                animator.SetBool("isMoving", true);
+            }
+            else
+            {
+                animator.SetBool("isMoving", false);
+            }
+        }
     }
 
 

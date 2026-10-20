@@ -23,6 +23,7 @@ public class OBJ_CMD : NPC
     [SubclassSelector]
     public List<QA> QAs = new List<QA>();
 
+
     // Don't touch it
     public int score = 0;
 
@@ -66,15 +67,20 @@ public class OBJ_CMD : NPC
 
     public Task<bool> ReadyQuiz()
     {
+        GameObject ready = GameObject.Find("Button Ready");
+        GameObject close = GameObject.Find("Button Close");
+        Button readyButton = ready.GetComponent<Button>();
+        Button closeButton = close.GetComponent<Button>();
+
         quizRespond = new TaskCompletionSource<bool>();
         void OnClick(Button btn) {
-            GameObject.Find("Button Ready").GetComponent<Button>().onClick.RemoveAllListeners();
-            GameObject.Find("Button Close").GetComponent<Button>().onClick.RemoveAllListeners();
+            readyButton.onClick.RemoveAllListeners();
+            closeButton.onClick.RemoveAllListeners();
             if (btn.GetComponentInChildren<TMP_Text>().text == "START") quizRespond.SetResult(true);
             else                                                        quizRespond.SetResult(false);
         }
-        GameObject.Find("Button Ready").GetComponent<Button>().onClick.AddListener(() => OnClick(GameObject.Find("Button Ready").GetComponent<Button>()));
-        GameObject.Find("Button Close").GetComponent<Button>().onClick.AddListener(() => OnClick(GameObject.Find("Button Close").GetComponent<Button>()));
+        readyButton.onClick.AddListener(() => OnClick(GameObject.Find("Button Ready").GetComponent<Button>()));
+        closeButton.onClick.AddListener(() => OnClick(GameObject.Find("Button Close").GetComponent<Button>()));
         return quizRespond.Task;
     }
 
@@ -152,13 +158,35 @@ public class OBJ_CMD : NPC
 
         Button done = res.transform.Find("Button Done").GetComponent<Button>();
         done.onClick.AddListener(DoneResult);
-    }
 
+        
+        // TODO: Adjust future difficulties of minigames according to scores
+    }
+    
+    public void HideCloseButton() // Only exists here to be called by the cutscene.
+    {
+        GameObject buttonClose = GameObject.Find("Button Close");
+        buttonClose.SetActive(false);
+
+    }
     public void DoneResult() {
         Canvas res = GameObject.Find("Terminal Results").GetComponent<Canvas>();
         Canvas player = GameObject.FindGameObjectWithTag("Canvas_Player").GetComponent<Canvas>();
         res.enabled = false;
         player.enabled = true;
+
+        //Debug.Log("Done result");
+        StartCutscene();
+    }
+
+    public void StartCutscene()
+    {
+        GameObject cutscene2 = GameObject.Find("Cutscene_AfterPretest");
+        
+        Cutscene cutsceneScript = cutscene2.GetComponent<Cutscene>();
+        cutsceneScript.PlayCutscene();
+        cutscene2.transform.Find("AftPreMusic").GetComponent<AudioSource>().Play();
+        Debug.Log("Cutscene called");
     }
 
     // forgot what it is but it looks important for later... unused and unaffected
