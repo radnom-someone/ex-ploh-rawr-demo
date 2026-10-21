@@ -26,7 +26,7 @@ public class OBJ_CMD : NPC
 
     // Don't touch it
     public int score = 0;
-
+ 
     public new void Start()
     {
         isEntity = false;
@@ -146,6 +146,7 @@ public class OBJ_CMD : NPC
         //player.enabled = true;
     }
 
+    public bool hasFailed = false;
     public void ShowResult() {
         Canvas res = GameObject.Find("Terminal Results").GetComponent<Canvas>();
         res.enabled = true;
@@ -154,9 +155,16 @@ public class OBJ_CMD : NPC
         grade.text = $"{score}/{QAs.Count}";
 
         TMP_InputField state = res.transform.Find("Result State").GetComponent<TMP_InputField>();
-        state.text = (this.score > (QAs.Count / 2)) ? ("PASSED") : ("FAILED");
+        if (this.score > (QAs.Count / 2)) {
+            state.text = "PASSED";
+            hasFailed = false;
+        } else
+        {
+            state.text = "FAILED";
+            hasFailed = true;
+        }
 
-        Button done = res.transform.Find("Button Done").GetComponent<Button>();
+            Button done = res.transform.Find("Button Done").GetComponent<Button>();
         done.onClick.AddListener(DoneResult);
 
         
@@ -165,29 +173,108 @@ public class OBJ_CMD : NPC
     
     public void HideCloseButton() // Only exists here to be called by the cutscene.
     {
-        GameObject buttonClose = GameObject.Find("Button Close");
-        buttonClose.SetActive(false);
+        GameObject readyPage = GameObject.Find("Terminal Ready");
+
+    if (readyPage == null)
+        return;
+
+    Transform closeButton = readyPage.transform.Find("Button Close");
+
+    if (closeButton != null)
+            closeButton.GetComponentInParent<Button>().interactable = false;
+        closeButton.GetComponentInParent<Image>().enabled = false;
 
     }
     public void DoneResult() {
         Canvas res = GameObject.Find("Terminal Results").GetComponent<Canvas>();
         Canvas player = GameObject.FindGameObjectWithTag("Canvas_Player").GetComponent<Canvas>();
+        Transform closeTransform = GameObject.Find("Terminal Ready").transform.Find("Button Close");
+        Transform playerUI = player.transform;
+        Transform joystick = playerUI.Find("Joystick BG");
+        Transform interact = playerUI.Find("Button Interact");
         res.enabled = false;
         player.enabled = true;
 
         //Debug.Log("Done result");
-        StartCutscene();
-    }
+        
+        GameObject cutscenesObject = GameObject.Find("Cutscenes");
 
+        if (cutscenesObject != null)
+        {
+            CutsceneManager manager = cutscenesObject.GetComponent<CutsceneManager>();
+            if (manager != null)
+            {
+                if (!manager.cutscenesFinished)
+                {
+                    StartCutscene();
+                    Debug.Log("Playing next cutscene..");
+                }
+            }
+        }
+
+        if (closeTransform != null)
+        {
+            closeTransform.gameObject.SetActive(true);
+
+            Button closeBut = closeTransform.GetComponent<Button>();
+
+            if (closeBut != null)
+            {
+                closeBut.interactable = true;
+
+                Image closeImage = closeBut.GetComponent<Image>();
+
+                if (closeImage != null)
+                {
+                    closeImage.enabled = true;
+                }
+            }
+        }
+        GameObject.Find("EncounterArea").GetComponent<AudioSource>().Stop();
+
+        if (joystick != null)
+        {
+            joystick.gameObject.SetActive(true);
+        }
+
+        if (interact != null)
+        {
+            interact.gameObject.SetActive(true);
+        }
+    }
     public void StartCutscene()
     {
         GameObject cutscene2 = GameObject.Find("Cutscene_AfterPretest");
-        
         Cutscene cutsceneScript = cutscene2.GetComponent<Cutscene>();
+
+        Cutscene.CutsceneAction action = cutsceneScript.GetAction(0);
+        if (hasFailed)
+        {
+            action.dialogue = "* You fumbled and struggled to get the words out! You bit your tongue in the process. How pathetic.";
+            Debug.Log("hasFailed: " + action.dialogue);
+        } 
+
         cutsceneScript.PlayCutscene();
         cutscene2.transform.Find("AftPreMusic").GetComponent<AudioSource>().Play();
         Debug.Log("Cutscene called");
     }
+
+    public void PlayNextCutscene() // to be called by Cutscene_AfterPretest after finishing
+    {
+        GameObject cutsceneBad = GameObject.Find("Cutscene_BadAfterCrying");
+        GameObject cutsceneGood = GameObject.Find("Cutscene_GoodAfterCrying");
+        if (hasFailed)
+        {
+            Debug.Log("Bad Cutscene");
+            cutsceneBad.GetComponent<Cutscene>().PlayCutscene();
+        } else
+        {
+            Debug.Log("Good Cutscene");
+            cutsceneGood.GetComponent<Cutscene>().PlayCutscene();
+        }
+    }
+
+    
 
     // forgot what it is but it looks important for later... unused and unaffected
     //IEnumerator RevealAnswer() {

@@ -25,6 +25,7 @@ public class Slideshow : MonoBehaviour
 
     [Header("Slideshow Contents")]
     [SerializeField] private string[] headers;
+    [TextArea(2,5)]
     [SerializeField] private string[] bodies;
     [Header("Slideshow Images (800x675 recommended)")]
     [SerializeField] private Texture[] images;
@@ -78,9 +79,19 @@ public class Slideshow : MonoBehaviour
         {
             HideSlideshow();
         }
-        if (pauseGameDuringSlideshow)
+        
+        if (startSlideshowOnStart)
         {
-            Time.timeScale = 0f; // Pause the game
+            ShowSlideshow();
+
+            if (pauseGameDuringSlideshow)
+            {
+                Time.timeScale = 0f;
+            }
+        }
+        else
+        {
+            HideSlideshow();
         }
     }
 
@@ -101,7 +112,7 @@ public class Slideshow : MonoBehaviour
         bool isFirstPage = currentIndex == 0;
         bool isLastPage = currentIndex == headers.Length - 1;
 
-        buttonPrev.interactable = !isFirstPage;
+        buttonPrev.interactable = !isFirstPage; 
 
         // Finish remains interactable on the last page.
         buttonNext.interactable = true;
@@ -140,6 +151,18 @@ public class Slideshow : MonoBehaviour
         }
     }
 
+    public void StartSlideshow() 
+    {
+        currentIndex = 0;
+
+        DisplaySlide();
+        ShowSlideshow();
+
+        if (pauseGameDuringSlideshow)
+        {
+            Time.timeScale = 0f;
+        }
+    }
     public void ShowSlideshow()
     {
         ssObject.SetActive(true);

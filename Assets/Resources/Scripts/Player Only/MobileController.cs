@@ -34,6 +34,16 @@ public class MobileController : MonoBehaviour, IDragHandler, IPointerDownHandler
         joystickFG.rectTransform.anchoredPosition = Vector2.zero;
     }
 
+    public void ResetInput() // FOR CUTSCENES
+    {
+        inputVector = Vector2.zero;
+
+        if (joystickFG != null)
+        {
+            joystickFG.rectTransform.anchoredPosition = Vector2.zero;
+        }
+    }
+
     public void OnDrag(PointerEventData eventData)
     {
         Vector2 pos;

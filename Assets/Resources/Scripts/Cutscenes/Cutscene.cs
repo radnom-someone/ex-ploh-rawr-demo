@@ -20,7 +20,8 @@ public class Cutscene : MonoBehaviour
         FadeBlack,
         SwitchCamera,
         Teleport,
-        MoveAndTalk
+        MoveAndTalk,
+        InvokeEvent
     }
 
     public enum CharacterTarget
@@ -71,6 +72,9 @@ public class Cutscene : MonoBehaviour
 
         [Header("Switch Camera")]
         public Camera targetCamera;
+
+        [Header("Custom Event")]
+        public UnityEvent onActionInvoked = new UnityEvent();
     }
 
     [Header("Player UI")]
@@ -163,6 +167,14 @@ public class Cutscene : MonoBehaviour
     {
         if (!isPlaying)
             return;
+        // Stops interference when the quiz has disabled the player Canvas.
+        if (UIPlayer != null)
+        {
+            Canvas playerCanvas = UIPlayer.GetComponent<Canvas>();
+
+            if (playerCanvas != null && !playerCanvas.enabled)
+                return;
+        }
 
         // Keep the gameplay controls hidden
         if (joystickBG != null && joystickBG.activeSelf) joystickBG.SetActive(false);
@@ -172,6 +184,7 @@ public class Cutscene : MonoBehaviour
         if (!cutsceneDialogueVisible)
             return;
 
+        /*
         // Restore the Canvas if another script disables it
         if (UIPlayer != null)
         {
@@ -181,7 +194,7 @@ public class Cutscene : MonoBehaviour
             {
                 playerCanvas.enabled = true;
             }
-        }
+        }*/
 
         // Restore the dialogue UI if an NPC's exit trigger hides it
         if (dialogueText != null)
@@ -396,6 +409,9 @@ public class Cutscene : MonoBehaviour
                 case CutsceneActionType.SwitchCamera:
                     switchCamera(action.targetCamera);
                     break;
+                case CutsceneActionType.InvokeEvent:
+                    action.onActionInvoked.Invoke();
+                    break;
             }
         }
 
@@ -415,6 +431,16 @@ public class Cutscene : MonoBehaviour
         yield return movementRoutine;
     }
 
+    public CutsceneAction GetAction(int index)
+    {
+        if (index < 0 || index >= actions.Count)
+        {
+            Debug.LogWarning("Cutscene: Invalid action index: " + index);
+            return null;
+        }
+
+        return actions[index];
+    }
     void finishCutscene(bool completed)
     {
         if (voiceAudioSource != null)
@@ -431,7 +457,16 @@ public class Cutscene : MonoBehaviour
         }
 
         hideDialogue();
-        RestorePlayerUI();
+        Canvas playerCanvas = UIPlayer.GetComponent<Canvas>();
+
+        if (playerCanvas != null && playerCanvas.enabled)
+        {
+            RestorePlayerUI();
+        }
+        else
+        {
+            uiHidden = false;
+        }
 
         isPlaying = false;
 
@@ -451,6 +486,12 @@ public class Cutscene : MonoBehaviour
         if (joystickBG != null)
         {
             previousJoystickState = joystickBG.activeSelf;
+            MobileController joystick = joystickBG.GetComponent<MobileController>();
+
+            if (joystick != null)
+            {
+                joystick.ResetInput();
+            }
             joystickBG.SetActive(false);
         }
 

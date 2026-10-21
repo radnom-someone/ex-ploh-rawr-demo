@@ -6,6 +6,7 @@ using UnityEngine.UI;
 public class ExplainerInteract : NPC
 {
     [SerializeField]
+    [TextArea(2,5)]
     public List<String> dialogue = new List<String>();
 
     private int index;
