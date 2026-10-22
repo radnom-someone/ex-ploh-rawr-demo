@@ -63,13 +63,14 @@ public class PlayerInteract : MonoBehaviour
         else if (GENDER == "F") animator.runtimeAnimatorController = Resources.Load<RuntimeAnimatorController>("Animations/PlayerFemale_Controller");    //Debug.Log("FEMALE!!");
         else                    animator.runtimeAnimatorController = Resources.Load<RuntimeAnimatorController>("Animations/PlayerNonbinary_Controller"); //Debug.Log("NONBINARY!!");
 
-
-        float x = PlayerPrefs.GetFloat("PlayerX");
-        float y = PlayerPrefs.GetFloat("PlayerY");
-        float z = PlayerPrefs.GetFloat("PlayerZ");
-        if (y < 0) { x = 0; y = 0; z = 0; }
-        transform.position = new Vector3(x, y, z);
-
+        if (SceneManager.GetActiveScene().name == "InGame")
+        {
+            float x = PlayerPrefs.GetFloat("PlayerX");
+            float y = PlayerPrefs.GetFloat("PlayerY");
+            float z = PlayerPrefs.GetFloat("PlayerZ");
+            if (y < 0) { x = 0; y = 0; z = 0; }
+            transform.position = new Vector3(x, y, z);
+        }
 
         // only in Non-Minigame, InGame-Scene
 
@@ -137,10 +138,13 @@ public class PlayerInteract : MonoBehaviour
         characterController.SimpleMove(moveVector); // with gravity
 
         // Save location
-        PlayerPrefs.SetFloat("PlayerX", transform.position.x);
-        PlayerPrefs.SetFloat("PlayerY", transform.position.y);
-        PlayerPrefs.SetFloat("PlayerZ", transform.position.z);
-        PlayerPrefs.Save();
+        if (SceneManager.GetActiveScene().name == "InGame") // saves the position ONLY inside ingame
+        {
+            PlayerPrefs.SetFloat("PlayerX", transform.position.x);
+            PlayerPrefs.SetFloat("PlayerY", transform.position.y);
+            PlayerPrefs.SetFloat("PlayerZ", transform.position.z);
+            PlayerPrefs.Save();
+        }
 
         Transform playerSprite = transform.Find("Player Sprite");
 
@@ -180,7 +184,16 @@ public class PlayerInteract : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (hasTriggered) return;
+        if (!other.CompareTag("NPC"))
+        {
+            return;
+        }
+
+        if (hasTriggered)
+        {
+            return;
+        }
+
         hasTriggered = true;
         //Debug.Log(other);
 
@@ -207,7 +220,15 @@ public class PlayerInteract : MonoBehaviour
 
     private void OnTriggerExit(Collider other)
     {
-        if (NPCscript == null) return;
+        if (NPCscript == null)
+        {
+            return;
+        }
+
+        if (other.gameObject != target)
+        {
+            return;
+        }
 
         if (NPCscript.GetType() == typeof(ExplainerInteract))
         {

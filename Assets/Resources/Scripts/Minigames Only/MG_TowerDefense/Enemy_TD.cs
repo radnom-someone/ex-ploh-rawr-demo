@@ -27,6 +27,8 @@ public class Enemy_TD : NPC
     [SerializeField] private Enemy_TD enemyScript;
     [SerializeField] private float totalDamageDone;
 
+    private bool isDead = false;
+
     private Button buttonAttack;
     private Rigidbody rb;
     private Coroutine tickCoroutine;
@@ -152,13 +154,37 @@ public class Enemy_TD : NPC
 
     public void takeDamage() // Void: Receive damage for this individual NPC. NOT Tower.
     {
+        if (isDead)
+        {
+            return;
+        }
         health -= towerScript.playerDamage; // One hit before death
         Debug.Log($"{gameObject.name} took damage! {health}-hp remaining.");
         if (health <= 0)
         {
+            isDead = true;
+
+            if (!isEvil)
+            {
+                towerScript.towerHealth -= towerScript.allySlainDmg;
+                towerScript.updateHpBar();
+                Debug.LogWarning("You've hit an ALLY! OUCH!");
+                if (towerScript.towerHealth <= 0f)
+                {
+                    towerScript.ForceResults();
+                }
+            }
+
             Debug.Log($"{gameObject.name} has been defeated!");
+
+            if (isEvil)
+            {
+                towerScript.RecordHostileKill();
+            }
+
             Destroy(gameObject);
             towerScript.enemyDefeated();
+            
         }
         //TODO: Knockback effect when taking damage (OPT)
         //TODO: Critical chance shakes the screen and deals more damage  (OPT)

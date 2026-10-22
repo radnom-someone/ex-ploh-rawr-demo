@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-
+using UnityEngine.Events;
 public class Slideshow : MonoBehaviour
 {
     [SerializeField] private bool startSlideshowOnStart = true;
@@ -9,6 +9,7 @@ public class Slideshow : MonoBehaviour
     [SerializeField] private bool spawnPlayerOnStart = true;
     [SerializeField] private GameObject playerSpawn;
     private PlayerSpawnPoint spawnScript;
+    [SerializeField] private UnityEvent onSlideshowFinish;
 
     [Header("Slideshow UI")]
     [SerializeField] private GameObject ssObject;
@@ -177,6 +178,7 @@ public class Slideshow : MonoBehaviour
         {
             spawnScript.TpPlayerToSpawn();
         }
+        onSlideshowFinish?.Invoke();
     }
 
     public void SetSlideshowContents(string[] newHeaders, string[] newBodies, Texture[] newImages) // allows dynamic update of slideshow contents.

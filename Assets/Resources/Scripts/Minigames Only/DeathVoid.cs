@@ -32,7 +32,9 @@ public class DeathVoid : MonoBehaviour
             hasDied = true;
             Debug.Log("Player has fallen into the void!");
 
-            resultsScript.displayResults(0, 0); 
+            resultsScript.displayResults(0, 0, true);
+            // Allow the player to restart the minigame.
+            resultsScript.ShowRetry();
             Time.timeScale = 0f; // Freeze
         }
     }

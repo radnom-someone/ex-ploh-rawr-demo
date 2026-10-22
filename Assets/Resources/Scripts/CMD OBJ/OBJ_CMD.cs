@@ -4,13 +4,13 @@ using System.Threading.Tasks;
 using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 public class OBJ_CMD : NPC
 {
     // Inspector elements
     public bool isTimed = false;
-
     /*
         When Timed:
             Choices = 7.5s
@@ -18,6 +18,10 @@ public class OBJ_CMD : NPC
             Fact = 5s
      */
 
+    [SerializeField] private bool isChapter1Pretest = false;
+    [SerializeField] private bool isChapter1RandomEncounter = false;
+    [SerializeField] private bool loadAllQuizzes = false; // if false, load the encountered/collected questions only.
+    [SerializeField] private UnityEvent onQuizFinished;
 
     [SerializeReference]
     [SubclassSelector]
@@ -63,8 +67,92 @@ public class OBJ_CMD : NPC
         else {
             await CloseReady();
         }
-    }  
+    }
 
+    public void StartPostTest() // DESPITE ITS NAME, IT IS ALSO USED FOR PRETEST. (isPretest must be true and loadallquizzes is true too)
+    {
+        LoadChapter1Questions();
+
+        if (QAs.Count <= 0)
+        {
+            Debug.LogWarning("Post-test: No questions available!");
+            return;
+        }
+
+        Interact();
+    }
+
+    private void LoadChapter1Questions()
+    {
+        QAs.Clear();
+
+        OBJ_CMD[] quizzes = FindObjectsByType<OBJ_CMD>(FindObjectsInactive.Include,FindObjectsSortMode.None);
+
+        foreach (OBJ_CMD quiz in quizzes)
+        {
+            if (quiz == this)
+            {
+                continue;
+            }
+
+            if (quiz.QAs == null || quiz.QAs.Count == 0)
+            {
+                continue;
+            }
+
+            if (loadAllQuizzes)
+            {
+                QAs.AddRange(quiz.QAs);
+            }
+            else
+            {
+                if (PlayerPrefs.GetInt(quiz.GetQuizSaveKey(), 0) == 1)
+                {
+                    QAs.AddRange(quiz.QAs);
+                }
+            }
+        }
+
+        Debug.Log("Post-test loaded " + QAs.Count +" questions. Load All: " + loadAllQuizzes);
+    }
+    private void SaveChapter1AssessmentScore()
+    {
+        if (!isChapter1Pretest && !isChapter1RandomEncounter)
+        {
+            Debug.Log("OBJ_CMD: " + gameObject.name +
+                " | Assessment Score: " + score + "/" + QAs.Count);
+
+            return;
+        }
+
+        int correctAnswers = score;
+        int totalQuestions = QAs.Count;
+
+        if (totalQuestions <= 0)
+        {
+            return;
+        }
+
+        if (isChapter1Pretest)
+        {
+            Chapter1Difficulty.SavePretest(correctAnswers, totalQuestions);
+        }
+        else if (isChapter1RandomEncounter)
+        {
+            Chapter1Difficulty.SaveRandomEncounter(
+                correctAnswers,
+                totalQuestions
+            );
+        }
+
+        Debug.Log("OBJ_CMD: " + gameObject.name +
+            " | Score: " + correctAnswers + "/" + totalQuestions +
+            " | Pretest: " + isChapter1Pretest +
+            " | Random Encounter: " + isChapter1RandomEncounter +
+            " | Chapter Performance: " +
+            Chapter1Difficulty.GetPerformance().ToString("F1") + "%"
+        );
+    }
     public Task<bool> ReadyQuiz()
     {
         GameObject ready = GameObject.Find("Button Ready");
@@ -138,7 +226,8 @@ public class OBJ_CMD : NPC
         animator.SetBool("isAnswering", false);
         //Debug.Log(score >= (QAs.Count / 2));
         animator.SetBool("isPassed", this.score > (QAs.Count / 2));
-
+        
+        SaveQuizEncounter();
         ShowResult();
 
         //Debug.Log("Quiz Done");
@@ -165,9 +254,10 @@ public class OBJ_CMD : NPC
         }
 
             Button done = res.transform.Find("Button Done").GetComponent<Button>();
+        done.onClick.RemoveListener(DoneResult);
         done.onClick.AddListener(DoneResult);
 
-        
+
         // TODO: Adjust future difficulties of minigames according to scores
     }
     
@@ -185,9 +275,31 @@ public class OBJ_CMD : NPC
         closeButton.GetComponentInParent<Image>().enabled = false;
 
     }
+
+    private string GetQuizSaveKey()
+    {
+        string path = "";
+        Transform current = transform;
+        while (current != null)
+        {
+            path = "/" + current.GetSiblingIndex() + "_" +current.name + path;
+            current = current.parent;
+        }
+        return "Chapter1_EncounteredQuiz_" + path;
+    }
+
+    private void SaveQuizEncounter()
+    {
+        PlayerPrefs.SetInt(GetQuizSaveKey(), 1);
+        PlayerPrefs.Save();
+    }
     public void DoneResult() {
         Canvas res = GameObject.Find("Terminal Results").GetComponent<Canvas>();
         Canvas player = GameObject.FindGameObjectWithTag("Canvas_Player").GetComponent<Canvas>();
+
+        GameObject encounterArea = GameObject.Find("EncounterArea");
+        GameObject chapterManager = GameObject.Find("Chapter1Manager");
+
         Transform closeTransform = GameObject.Find("Terminal Ready").transform.Find("Button Close");
         Transform playerUI = player.transform;
         Transform joystick = playerUI.Find("Joystick BG");
@@ -230,19 +342,39 @@ public class OBJ_CMD : NPC
                 }
             }
         }
-        GameObject.Find("EncounterArea").GetComponent<AudioSource>().Stop();
-
+        if (encounterArea != null)
+        {
+            AudioSource audio = encounterArea.GetComponent<AudioSource>();
+            if (audio != null)
+            {
+                audio.Stop();
+            }
+        }
+        /*if (chapterManager != null)
+        {
+            AudioSource audio = chapterManager.GetComponent<AudioSource>();
+            if (audio != null)
+            {
+                audio.Play();
+            }
+        }*/
         if (joystick != null)
         {
             joystick.gameObject.SetActive(true);
         }
-
         if (interact != null)
         {
             interact.gameObject.SetActive(true);
         }
+        SaveChapter1AssessmentScore();
+        onQuizFinished?.Invoke();
     }
-    public void StartCutscene()
+
+    // IN CHRONOLOGICAL ORDER (sorry, I don't have time to change these method names anymore.)
+    // 1. StartCutscene() is called after the pre-test
+    // 2. PlayNextCutscene() is called after this cutscene: Cutscene_AfterPretest 
+    // 3. PlayDeterminePostTestCutscene is called after the chapter 1 post-test results.
+    public void StartCutscene() // FOR AFTER PRE-TEST. 
     {
         GameObject cutscene2 = GameObject.Find("Cutscene_AfterPretest");
         Cutscene cutsceneScript = cutscene2.GetComponent<Cutscene>();
@@ -254,9 +386,42 @@ public class OBJ_CMD : NPC
             Debug.Log("hasFailed: " + action.dialogue);
         } 
 
-        cutsceneScript.PlayCutscene();
-        cutscene2.transform.Find("AftPreMusic").GetComponent<AudioSource>().Play();
-        Debug.Log("Cutscene called");
+        if (!GameObject.Find("Cutscenes").GetComponent<CutsceneManager>().cutscenesFinished)
+        {
+            cutsceneScript.PlayCutscene();
+            cutscene2.transform.Find("AftPreMusic").GetComponent<AudioSource>().Play();
+            Debug.Log("Cutscene called");
+        }
+        
+    }
+
+    public void PlayDeterminePostTestCutscene() // for chapter 1 posttest
+    {
+        string cutsceneName;
+
+        if (hasFailed)
+        {
+            cutsceneName = "Cutscene_Bad_PostTestFinished";
+        }
+        else
+        {
+            cutsceneName = "Cutscene_Good_PostTestFinished";
+        }
+
+        GameObject cutsceneObject = GameObject.Find(cutsceneName);
+
+        if (cutsceneObject == null)
+        {
+            Debug.LogError("Cutscene not found: " + cutsceneName);
+            return;
+        }
+
+        Cutscene cutscene = cutsceneObject.GetComponent<Cutscene>();
+
+        if (cutscene != null)
+        {
+            cutscene.PlayCutscene();
+        }
     }
 
     public void PlayNextCutscene() // to be called by Cutscene_AfterPretest after finishing

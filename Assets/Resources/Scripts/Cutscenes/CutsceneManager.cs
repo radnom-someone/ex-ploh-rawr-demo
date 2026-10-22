@@ -8,7 +8,7 @@ public class CutsceneManager : MonoBehaviour
     public bool cutscenesFinished = false;
     private void Start()
     {
-        cutscenesFinished = false;
+        //cutscenesFinished = false;
     }
 
     public void FinishCutscene()

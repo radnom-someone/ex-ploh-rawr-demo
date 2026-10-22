@@ -17,7 +17,7 @@ public class SlashAttack : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Enemy_TD"))
+        if (other.CompareTag("Enemy_TD"))   
         {
             if (hit) { return; }
             Debug.Log("SlashAttack hit an Enemy_TD! " + other.name);

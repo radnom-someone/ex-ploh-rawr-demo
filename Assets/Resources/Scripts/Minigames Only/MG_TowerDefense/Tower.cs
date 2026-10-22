@@ -9,6 +9,7 @@ public class Tower : MonoBehaviour
 {
     // This class is responsible for the tower and its properties, as well as enemy spawn properties.
     public bool isOngoing = true;
+    [SerializeField] private bool gameOver = false;
 
     [Header("Tower Properties")]
     [Tooltip("Tower's health in float values")]
@@ -35,6 +36,8 @@ public class Tower : MonoBehaviour
     public float enemyDamageCritChance = 10f;
     [Tooltip("Enemy's attack speed (per second).")]
     public float enemyDamageTickRate = 2.0f;
+    [Tooltip("Enemy walking speed")]
+    public float enemyWalkSpeed = 3.5f;
 
     [Header("Ally (fake enemy) Properties")]
     [Tooltip("An fake enemy (ally)'s heal amount to the tower when it gets consumed by the tower")]
@@ -46,7 +49,13 @@ public class Tower : MonoBehaviour
     [Tooltip("Player's minimum damage against enemies not yet influenced by critical strikes.")]
     public float playerDamage = 26.0f;
 
-    // <REQUIRES IMPLEMENTATION>
+    [Header("For scoring system")]
+    public int totalEnemiesSpawned = 0;
+    public int enemiesSlain = 0;
+    public int totalHostileSpawned = 0;
+    public int hostileEnemiesSlain = 0;
+
+    /* <REQUIRES IMPLEMENTATION>
 
     [Tooltip("Player's attack speed per second")] 
     public float playerAtkSpeed = 1.0f; 
@@ -54,7 +63,7 @@ public class Tower : MonoBehaviour
     public float speedIncrease = 10f; // placeholder. should be toggleable or added immediately after killing an enemy?
     [Tooltip("Player speed boost duration in seconds")]
     public float speedDuration = 1f; 
-    // </REQUIRES IMPLEMENTATION>
+    */
 
     //
     [Header("Miscellaneous")]
@@ -124,17 +133,52 @@ public class Tower : MonoBehaviour
         }
         enemy = Resources.Load<GameObject>("Prefabs/Minigames Only/Evil Bun");
         
+        ApplyAdaptiveDifficulty();
         StartCoroutine(Loop()); // 1. Initiate loop that continuously spawns enemies every x seconds
     }
 
+    private void Update()
+    {
+        if (isOngoing && !gameOver && towerHealth <= 0f)
+        {
+            ForceResults();
+        }
+    }
+
+    private void ApplyAdaptiveDifficulty()
+    {
+        int difficulty = Chapter1Difficulty.GetDifficulty();
+
+        if (difficulty == 2) // Hard
+        {
+            enemyDamage = 30f;
+            enemyDamageCritChance = 10f;
+            enemyDamageCritMultiplier = 1.5f;
+        }
+        else if (difficulty == 1) // Normal
+        {
+            enemyDamage = 25f;
+            enemyDamageCritChance = 7.5f;
+            enemyDamageCritMultiplier = 1.5f;
+        }
+        else // Easy
+        {
+            enemyDamage = 20f;
+            enemyDamageCritChance = 5f;
+            enemyDamageCritMultiplier = 1.5f;
+        }
+
+        Debug.Log(
+            "Tower Defense Difficulty: " + difficulty +
+            " | Enemy Damage: " + enemyDamage +
+            " | Crit Chance: " + enemyDamageCritChance + "%" +
+            " | Crit Multiplier: " + enemyDamageCritMultiplier
+        );
+    }
     public void updateHpBar()
     {
+        towerHealth = Mathf.Clamp(towerHealth, 0f, towerMaxHealth);
         towerHpBar.value = towerHealth;
-
-        if (towerHealth > towerMaxHealth) // Stop the tower from overhealing
-        {
-            towerHealth = towerMaxHealth;
-        }
     }
 
     void spawnEnemy(Transform location) // Spawns an enemy at a location
@@ -147,17 +191,45 @@ public class Tower : MonoBehaviour
         
         Enemy_TD enemyScript = spawnedEnemy.GetComponent<Enemy_TD>(); // Communicates to the Enemy script
 
+        UnityEngine.AI.NavMeshAgent agent =
+        spawnedEnemy.GetComponent<UnityEngine.AI.NavMeshAgent>();
+
+        if (agent != null)
+        {
+            agent.speed = enemyWalkSpeed;
+        }
+
         if (enemyScript != null)
         {
             enemyScript.enemyID = nextEnemyID;
             spawnedEnemy.name = "EvilBun_" + nextEnemyID; // IDs each spawned enemy to the enemyScript
             nextEnemyID++;
             enemiesAlive++;
+            totalEnemiesSpawned++;
             //Debug.Log("Spawned Evil Bun ID: " + enemyScript.enemyID);
         }
 
         attachNametag(spawnedEnemy, enemyScript);
+        if (enemyScript != null)
+        {
+            if (enemyScript.isEvil)
+            {
+                totalHostileSpawned++;
+            }
+        }
         updateHeader(nametagScript.GetWinningSO().question);
+    }
+
+    public void RecordHostileKill()
+    {
+        if (gameOver || !isOngoing)
+        {
+            return;
+        }
+
+        hostileEnemiesSlain++;
+
+        Debug.Log("Hostile enemies slain: " +hostileEnemiesSlain + "/" + totalHostileSpawned);
     }
 
     void updateHeader(string txt)
@@ -168,6 +240,7 @@ public class Tower : MonoBehaviour
     public void enemyDefeated()
     {
         enemiesAlive--;
+        enemiesSlain++;
         Debug.Log("Enemy defeated. Enemies remaining: " + enemiesAlive);
     }
     
@@ -270,6 +343,42 @@ public class Tower : MonoBehaviour
         updateHpBar();
     }
 
+    public void ForceResults() // can be used to force fail results
+    {
+        if (gameOver)
+        {
+            return;
+        }
+
+        gameOver = true;
+
+        Debug.Log("Tower destroyed! Forcing results.");
+
+        StopAllCoroutines();
+        isOngoing = false;
+        towerHealth = 0f;
+
+        updateHpBar();
+        updateHeader("Tower is destroyed...");
+
+        buttonAttack.interactable = false;
+        PlayerPrefs.SetInt("Chapter1_TowerDefenseWon", 2);
+        PlayerPrefs.Save();
+        DisplayFinalScore(true);      // must be in this
+        resultScript.ShowRetry(); // order to avoid breaking the game
+        
+    }
+
+    private void DisplayFinalScore(bool failed = false)
+    {
+        int maxScore = Mathf.Max(1, totalHostileSpawned);
+
+        resultScript.displayResults(hostileEnemiesSlain,maxScore,failed);
+
+        float percentage =(float)hostileEnemiesSlain / maxScore * 100f;
+
+        Debug.Log("Tower Defense Final Score: " + hostileEnemiesSlain + "/" + totalHostileSpawned + " (" + percentage.ToString("F1") + "%)");
+    }
     IEnumerator Loop()
     {
         for (int wave = 1; wave <= numberOfWaves; wave++)
@@ -278,7 +387,7 @@ public class Tower : MonoBehaviour
                 yield break;
             if (towerHealth <= 0)
             {
-                updateHeader("You Failed!");
+                updateHeader("Tower is destroyed...");
                 yield break;    
             }
 
@@ -319,33 +428,26 @@ public class Tower : MonoBehaviour
             }
         }
 
-        resultScript.displayResults(13, 20); // TEMPORARY. Will add a scoring system later.
+        if (towerHealth <= 0f)
+        {
+            ForceResults();
+            yield break;
+        }
+
+        if (gameOver)
+        {
+            yield break;
+        }
+
+        gameOver = true;
         isOngoing = false;
 
-        Debug.Log("All waves completed!");
+        DisplayFinalScore();
+        PlayerPrefs.SetInt("Chapter1_TowerDefenseWon", 1);
+        PlayerPrefs.Save();
+        Debug.Log("All waves completed! Victory!");
     }
 
-    /*
-    IEnumerator Loop() 
-    {
-        while (isOngoing == true && currentWavesLeft > 0)
-        {
-            Debug.Log("Spawning enemies in " + enemySpawnRate + " seconds...");
-            for (int wave = numberOfWaves; wave>0; wave--)
-                Debug.Log("Wave " + wave + " incoming!");
-            {
-                for (int i = 0; i < enemiesPerWave; i++)
-                {
-                    spawnEnemy(spawnChildren[i]);
-                    Debug.Log("Spawned enemy " + i + " of wave ");
-                }
-            }
-            // pause loop until wave is finished
-            nametagScript.rollNewSet(); // roll nametag after wave spawn
-            currentWavesLeft--;
-            yield return new WaitForSeconds(enemySpawnRate);
-        }
-    }*/
 
 
 
