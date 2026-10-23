@@ -68,7 +68,7 @@ public class WallSpawner : MonoBehaviour
     private bool isWaitingForNextWave;
     private Results resultsScript;
 
-   
+
 
     private void Start()
     {
@@ -330,13 +330,15 @@ public class WallSpawner : MonoBehaviour
 
             activeWalls.Add(wall);
         }
-
+        GameObject sfx = Resources.Load<GameObject>("Prefabs/Minigames Only/SFX_MovingStone");
+        GameObject spawnedSFX = Instantiate(sfx);
         formationsThisWave++;
 
         if (formationsThisWave >= wave.spawnsRequired)
         {
             AdvanceWave();
         }
+        Destroy(spawnedSFX, 3f);
     }
 
     private void AdvanceWave() // Per wave.

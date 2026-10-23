@@ -379,7 +379,7 @@ public class OBJ_CMD : NPC
     if (closeButton != null)
             closeButton.GetComponentInParent<Button>().interactable = false;
         closeButton.GetComponentInParent<Image>().enabled = false;
-        closeButton.GetComponentInChildren<TextMeshPro>().enabled = false;
+      //  closeButton.GetComponentInChildren<TextMeshPro>().enabled = false;
 
     }
     public void ShowCloseButton() //
@@ -394,7 +394,7 @@ public class OBJ_CMD : NPC
         if (closeButton != null)
             closeButton.GetComponentInParent<Button>().interactable = true;
         closeButton.GetComponentInParent<Image>().enabled = true;
-        closeButton.GetComponentInChildren<TextMeshPro>().enabled = true;
+        //closeButton.GetComponentInChildren<TextMeshPro>().enabled = true;
 
     }
 
