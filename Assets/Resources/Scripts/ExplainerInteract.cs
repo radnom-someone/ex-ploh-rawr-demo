@@ -8,9 +8,9 @@ public class ExplainerInteract : NPC
     [SerializeField]
     [TextArea(2,5)]
     public List<String> dialogue = new List<String>();
-
+    [SerializeField] private float nextDialogueCooldown = 1.5f;
     private int index;
-
+    private float nextDialogueTime;
     new void Start()
     {
         //npcSprite = GetComponent<SpriteRenderer>();
@@ -30,6 +30,7 @@ public class ExplainerInteract : NPC
         // First-Line
         index = 0;
         Speak(dialogue[index], true);
+        nextDialogueTime = Time.unscaledTime + nextDialogueCooldown;
         //Debug.Log(index);
 
         PlayerInteract.UI_INTERACT.gameObject.SetActive(false);
@@ -39,10 +40,15 @@ public class ExplainerInteract : NPC
 
 
     public void SayNext() {
+        if (Time.unscaledTime < nextDialogueTime)
+        {
+            return;
+        }
         if (index >= dialogue.Count - 1) { return; }
 
         index++;
         Speak(dialogue[index], true);
+        nextDialogueTime = Time.unscaledTime + nextDialogueCooldown;
 
         if (index >= dialogue.Count - 1) // explaining done!
         {
@@ -60,10 +66,15 @@ public class ExplainerInteract : NPC
 
     public void SayPrev()
     {
+        if (Time.unscaledTime < nextDialogueTime)
+        {
+            return;
+        }
         if (index == 0) { return; }
 
         index--;
         Speak(dialogue[index], true);
+        nextDialogueTime = Time.unscaledTime + nextDialogueCooldown;
 
         //Debug.Log(index);
 

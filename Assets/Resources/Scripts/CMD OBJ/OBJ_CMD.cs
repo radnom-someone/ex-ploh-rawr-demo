@@ -17,11 +17,23 @@ public class OBJ_CMD : NPC
             Identify = 10s
             Fact = 5s
      */
+    [Header("Flashcards")] // Flashcards automatically gather every OBJ_CMD GameObject's inspector elements for the entire scene. as long as "collectIncorrectFlashcards" is enabled in the Unity hierarchy
+    [Min(1)] public int flashcardChapter = 1;
+    [SerializeField] private bool collectIncorrectFlashcards = false; 
+    private readonly List<QA> incorrectFlashcardQuestions = new List<QA>();
 
     [SerializeField] private bool isChapter1Pretest = false;
+
+    [Header("Random Encounter")]
     [SerializeField] private bool isChapter1RandomEncounter = false;
+    public bool isRandomEncounterConsole = false;
+    private readonly List<OBJ_CMD> encounterConsoles = new List<OBJ_CMD>();
+    private int nextConsoleIndex = 0;
+
     [SerializeField] private bool loadAllQuizzes = false; // if false, load the encountered/collected questions only.
     [SerializeField] private UnityEvent onQuizFinished;
+
+    
 
     [SerializeReference]
     [SubclassSelector]
@@ -34,6 +46,7 @@ public class OBJ_CMD : NPC
     public new void Start()
     {
         isEntity = false;
+        ExplorerFlashcardStore.RegisterQuestions(flashcardChapter, QAs);
     }
 
     public new void Update() {
@@ -69,6 +82,20 @@ public class OBJ_CMD : NPC
         }
     }
 
+    private void RecordFlashcardFailure(QA qa)
+    {
+        if (!collectIncorrectFlashcards &&
+            !isChapter1Pretest &&
+            !isChapter1RandomEncounter)
+        {
+            return;
+        }
+
+        if (qa != null && !incorrectFlashcardQuestions.Contains(qa))
+        {
+            incorrectFlashcardQuestions.Add(qa);
+        }
+    }
     public void StartPostTest() // DESPITE ITS NAME, IT IS ALSO USED FOR PRETEST. (isPretest must be true and loadallquizzes is true too)
     {
         LoadChapter1Questions();
@@ -82,15 +109,89 @@ public class OBJ_CMD : NPC
         Interact();
     }
 
+    public void ChooseOneREConsole()
+    {
+        // Gather consoles in the scene's hierarchy order.
+        if (encounterConsoles.Count == 0)
+        {
+            GameObject[] roots = gameObject.scene.GetRootGameObjects();
+
+            System.Array.Sort(
+                roots,
+                (a, b) => a.transform.GetSiblingIndex()
+                    .CompareTo(b.transform.GetSiblingIndex())
+            );
+
+            foreach (GameObject root in roots)
+            {
+                OBJ_CMD[] consoles = root.GetComponentsInChildren<OBJ_CMD>(true);
+
+                foreach (OBJ_CMD console in consoles)
+                {
+                    if (console.isRandomEncounterConsole)
+                    {
+                        encounterConsoles.Add(console);
+                    }
+                }
+            }
+
+            nextConsoleIndex = 0;
+        }
+
+        // Remove any consoles destroyed since the previous encounter.
+        for (int i = encounterConsoles.Count - 1; i >= 0; i--)
+        {
+            if (encounterConsoles[i] == null)
+            {
+                encounterConsoles.RemoveAt(i);
+
+                if (i < nextConsoleIndex)
+                {
+                    nextConsoleIndex--;
+                }
+            }
+        }
+
+        if (encounterConsoles.Count == 0)
+        {
+            Debug.LogWarning("No random encounter consoles found in this scene.");
+            return;
+        }
+
+        // All consoles used: shuffle before starting another round.
+        if (nextConsoleIndex >= encounterConsoles.Count)
+        {
+            ShuffleREConsoles();
+            nextConsoleIndex = 0;
+        }
+
+        OBJ_CMD selectedConsole = encounterConsoles[nextConsoleIndex];
+        nextConsoleIndex++;
+
+        selectedConsole.Interact();
+    }
+
+    private void ShuffleREConsoles()
+    {
+        for (int i = encounterConsoles.Count - 1; i > 0; i--)
+        {
+            int randomIndex = Random.Range(0, i + 1);
+
+            OBJ_CMD temporary = encounterConsoles[i];
+            encounterConsoles[i] = encounterConsoles[randomIndex];
+            encounterConsoles[randomIndex] = temporary;
+        }
+    }
     private void LoadChapter1Questions()
     {
+        ExplorerFlashcardStore.RegisterLoadedQuizzes();
         QAs.Clear();
 
         OBJ_CMD[] quizzes = FindObjectsByType<OBJ_CMD>(FindObjectsInactive.Include,FindObjectsSortMode.None);
 
         foreach (OBJ_CMD quiz in quizzes)
         {
-            if (quiz == this)
+            if (quiz == this || quiz.flashcardChapter != flashcardChapter) 
             {
                 continue;
             }
@@ -193,6 +294,8 @@ public class OBJ_CMD : NPC
     public async Task QuizTime()
     {
         score = 0;
+        incorrectFlashcardQuestions.Clear();
+        ExplorerFlashcardStore.RegisterQuestions(flashcardChapter, QAs);
         animator.SetBool("isAnswering", true);
 
         Canvas ui = null;
@@ -237,6 +340,9 @@ public class OBJ_CMD : NPC
 
     public bool hasFailed = false;
     public void ShowResult() {
+        ExplorerFlashcardStore.CollectFailures(flashcardChapter,incorrectFlashcardQuestions);
+
+        incorrectFlashcardQuestions.Clear();
         Canvas res = GameObject.Find("Terminal Results").GetComponent<Canvas>();
         res.enabled = true;
 
@@ -273,6 +379,22 @@ public class OBJ_CMD : NPC
     if (closeButton != null)
             closeButton.GetComponentInParent<Button>().interactable = false;
         closeButton.GetComponentInParent<Image>().enabled = false;
+        closeButton.GetComponentInChildren<TextMeshPro>().enabled = false;
+
+    }
+    public void ShowCloseButton() //
+    {
+        GameObject readyPage = GameObject.Find("Terminal Ready");
+
+        if (readyPage == null)
+            return;
+
+        Transform closeButton = readyPage.transform.Find("Button Close");
+
+        if (closeButton != null)
+            closeButton.GetComponentInParent<Button>().interactable = true;
+        closeButton.GetComponentInParent<Image>().enabled = true;
+        closeButton.GetComponentInChildren<TextMeshPro>().enabled = true;
 
     }
 
@@ -324,6 +446,7 @@ public class OBJ_CMD : NPC
             }
         }
 
+        ShowCloseButton();
         if (closeTransform != null)
         {
             closeTransform.gameObject.SetActive(true);
@@ -479,7 +602,13 @@ public class OBJ_CMD : NPC
         b4.transform.Find("Answer 4").GetComponent<TMP_Text>().text = ((MultipleChoices)qa).choices[3];
 
         string ans = await ChooseAnswer(((MultipleChoices)qa).choices);
-        if (qa.Answer(ans)) { score++; }
+        if (qa.Answer(ans)) 
+        { 
+            score++; 
+        } else
+        {
+            RecordFlashcardFailure(qa);
+        }
 
         foreach (Button b in buttons) {
             if      (b.GetComponentInChildren<TMP_Text>().text == qa.ANSWER) b.GetComponent<Image>().color = Color.green;
@@ -506,6 +635,7 @@ public class OBJ_CMD : NPC
             score++;
             submit.GetComponent<Image>().color = Color.green;
         } else {
+            RecordFlashcardFailure(qa);
             submit.GetComponent<Image>().color = Color.red;
         }
     }
@@ -527,6 +657,7 @@ public class OBJ_CMD : NPC
             if      (qa.savedAnswer == "true")  bt.GetComponent<Image>().color = Color.green;
             else if (qa.savedAnswer == "false") bf.GetComponent<Image>().color = Color.green;
         } else {
+            RecordFlashcardFailure(qa);
             if (qa.savedAnswer == "true") {
                 bt.GetComponent<Image>().color = Color.red;
                 bf.GetComponent<Image>().color = Color.green;

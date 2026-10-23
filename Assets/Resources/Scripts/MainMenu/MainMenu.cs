@@ -93,7 +93,7 @@ public class MainMenu : MonoBehaviour
 
         Debug.Log("Clicked Quit");
         audioSource.Play();
-        UnityEditor.EditorApplication.isPlaying = false; // only applies to Unity Editor
+        //UnityEditor.EditorApplication.isPlaying = false; // only applies to Unity Editor
         Application.Quit(); // violates Apple's HCI, they prefer via home gestures
         // Activity.moveTaskToBack for Android
 
