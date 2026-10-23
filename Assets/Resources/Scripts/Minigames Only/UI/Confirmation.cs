@@ -17,8 +17,8 @@ public class Confirmation : MonoBehaviour
         confirmationUI = GameObject.Find("ConfirmationUI");
         confirmCanvas = confirmationUI.GetComponent<Canvas>();
 
-        buttonNo = confirmationUI.transform.Find("Button No").GetComponent<Button>();
-        buttonNo.onClick.AddListener(CloseConfirmationUI);
+        //buttonNo = confirmationUI.transform.Find("Button No").GetComponent<Button>();
+        //buttonNo.onClick.AddListener(CloseConfirmationUI);
 
         buttonYes = confirmationUI.transform.Find("Button Yes").GetComponent<Button>();
 

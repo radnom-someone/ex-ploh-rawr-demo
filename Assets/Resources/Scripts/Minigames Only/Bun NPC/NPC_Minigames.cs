@@ -74,12 +74,30 @@ public class NPC_Minigames : NPC
         Time.timeScale = 0f; // pause
 
         // Hide player controls
-        PlayerInteract.UI_JOYSTICK.gameObject.SetActive(false);
-        PlayerInteract.UI_INTERACT.gameObject.SetActive(false);
+        //PlayerInteract.UI_JOYSTICK.gameObject.SetActive(false);
+        //PlayerInteract.UI_INTERACT.gameObject.SetActive(false);
 
         confirmCanvas.enabled = true;
         confirmationUI.transform.Find("Button Yes").GetComponent<Button>().onClick.AddListener(LoadMinigameScene);
     }
+
+    public void InteractAfterScene() // Changed it to protected override for Quest system to work properly
+    {
+        QuestEvents.talkToEvent.Invoke(npcName); // Invoke the talkToEvent with the NPC's name
+
+        Canvas confirmCanvas = confirmationUI.GetComponent<Canvas>();
+        confirmationScript.EditDescription(confirmationDesc);
+
+        Time.timeScale = 0f; // pause
+
+        // Hide player controls
+        //PlayerInteract.UI_JOYSTICK.gameObject.SetActive(false);
+        //PlayerInteract.UI_INTERACT.gameObject.SetActive(false);
+
+        confirmCanvas.enabled = true;
+        confirmationUI.transform.Find("Button Yes").GetComponent<Button>().onClick.AddListener(LoadMinigameScene);
+    }
+
 
     public void LoadMinigameScene()
     {
@@ -88,10 +106,9 @@ public class NPC_Minigames : NPC
             Debug.LogError("NPC_Minigame: Scene name is empty.", this);
             return;
         }
-        PlayerInteract.UI_JOYSTICK.gameObject.SetActive(true);
-        PlayerInteract.UI_INTERACT.gameObject.SetActive(true);
+
         Time.timeScale = 1f;
-        SceneManager.LoadScene(sceneName);
+        SceneManager.LoadScene(sceneName);  
     }
 
 }

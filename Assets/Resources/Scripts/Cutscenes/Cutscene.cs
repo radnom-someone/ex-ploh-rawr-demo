@@ -907,6 +907,7 @@ public class Cutscene : MonoBehaviour
             Debug.LogWarning("Cutscene: Target Camera not assigned! (Did you assign it in the SwitchCamera action?)");
             return;
         }
+        Debug.Log("Switch cam: " +  targetCamera);
 
         // 1. Only one AudioListener can be on, so turn them all off first
         AudioListener[] listeners = FindObjectsByType<AudioListener>(FindObjectsInactive.Include, FindObjectsSortMode.None);

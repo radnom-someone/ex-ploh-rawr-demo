@@ -3,6 +3,7 @@ using UnityEngine.Analytics;
 using UnityEngine.SceneManagement;
 using System.Collections;
 using UnityEngine.UI;
+using TMPro;
 
 
 public class MainMenu : MonoBehaviour
@@ -21,7 +22,17 @@ public class MainMenu : MonoBehaviour
 
     void Start()
     {
-        string gender = PlayerPrefs.GetString("PlayerGender");
+        if (PlayerPrefs.GetString("AccountID") == "")
+        {
+            DBC.IS_GUEST_MODE = true;
+            PlayerPrefs.SetString("PlayerGender", "N");
+            PlayerPrefs.SetString("PlayerName", "");
+        }
+        else {
+            DBC.IS_GUEST_MODE = false;
+        }
+
+            string gender = PlayerPrefs.GetString("PlayerGender");
         Animator animator = GameObject.Find("Gender Sprite").GetComponent<Animator>();
 
              if (gender == "M") animator.runtimeAnimatorController = Resources.Load<RuntimeAnimatorController>("Animations/PlayerMale_Controller");
@@ -75,10 +86,9 @@ public class MainMenu : MonoBehaviour
 
     private IEnumerator DramaticWait() //coroutine
     {
-        Debug.Log("Waiting for 5 seconds before loading the scene...");
-        audioSource.clip = Resources.Load<AudioClip>("Sound/eyecatch");
+        Debug.Log("Waiting for 1 second before loading the scene...");
         audioSource.Play();
-        yield return new WaitForSeconds(5f);
+        yield return new WaitForSeconds(1f);
         SceneManager.LoadScene("InGame");
     }
 
@@ -93,15 +103,12 @@ public class MainMenu : MonoBehaviour
 
         Debug.Log("Clicked Quit");
         audioSource.Play();
-        //UnityEditor.EditorApplication.isPlaying = false; // only applies to Unity Editor
         Application.Quit(); // violates Apple's HCI, they prefer via home gestures
         // Activity.moveTaskToBack for Android
 
     }
 
     public void ClickSettings() {
-
- 
         settings.enabled = true;
         initiateMainMenu(false);
 

@@ -18,6 +18,10 @@ public class WallSpawner : MonoBehaviour
     [SerializeField] private TMP_Text questionText;
     [SerializeField] private TMP_Text waveText;
 
+    [Header("Adaptive Difficulty")]
+    [SerializeField] private bool useAdaptiveDifficulty = true;
+    [SerializeField, Min(1)] private int assessmentChapter = 2;
+
     // WALL SPAWN LOGIC
     [Header("Formation Spawning")]
     [Min(0.1f)]
@@ -77,6 +81,8 @@ public class WallSpawner : MonoBehaviour
         score = 0;
         maxScore = 0;
 
+        ApplyAdaptiveDifficulty();
+
         if (!ValidateSetup())
         {
             enabled = false;
@@ -112,6 +118,52 @@ public class WallSpawner : MonoBehaviour
         }
     }
 
+    private void ApplyAdaptiveDifficulty()
+    {
+        if (!useAdaptiveDifficulty)
+        {
+            return;
+        }
+
+        int difficulty = ChapterDifficulty.GetDifficulty(assessmentChapter);
+        string difficultyName;
+
+        if (difficulty == 0)
+        {
+            difficultyName = "Easy";
+
+            spawnInterval = 7f;
+            baseWallSpeed = 2f;
+            wrongHitSpeedMultiplier = 1.10f;
+            maximumSpeedMultiplier = 2f;
+        }
+        else if (difficulty == 1)
+        {
+            difficultyName = "Normal";
+
+            spawnInterval = 6f;
+            baseWallSpeed = 2.5f;
+            wrongHitSpeedMultiplier = 1.15f;
+            maximumSpeedMultiplier = 3f;
+        }
+        else
+        {
+            difficultyName = "Hard";
+
+            // Your tested Hard settings.
+            spawnInterval = 5f;
+            baseWallSpeed = 3f;
+            wrongHitSpeedMultiplier = 1.25f;
+            maximumSpeedMultiplier = 4f;
+        }
+
+        Debug.Log(
+            "WallSpawner | Chapter " + assessmentChapter +
+            " | Performance: " +
+            ChapterDifficulty.GetPerformance(assessmentChapter).ToString("F1") +
+            "% | Difficulty: " + difficultyName
+        );
+    }
     private bool ValidateSetup() // debugging purposes
     {
         if (wallPrefab == null)

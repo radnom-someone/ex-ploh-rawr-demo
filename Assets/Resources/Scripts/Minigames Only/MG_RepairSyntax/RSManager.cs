@@ -11,6 +11,10 @@ public class RSManager : MonoBehaviour
     [Header("Challenge Data")]
     [SerializeField] private RepairSyntaxData[] challengeData;
 
+    [Header("Adaptive Difficulty")]
+    [SerializeField] private bool useAdaptiveDifficulty = true;
+    [SerializeField, Min(1)] private int assessmentChapter = 2; // prob 3
+
     [Header("Challenge Selection")]
     [Tooltip("Shuffles the order the challenges are played in. If off, they are played in the same order as the array above.")]
     [SerializeField] private bool randomizeOrder;
@@ -81,6 +85,7 @@ public class RSManager : MonoBehaviour
 
     void Awake()
     {
+        ApplyAdaptiveDifficulty();
         // 1. Build the play order here, because RSLineSpawner reads CurrentWave in its own Start
         buildChallengeOrder();
 
@@ -407,4 +412,51 @@ public class RSManager : MonoBehaviour
         isRepairing = true;
         repairUI.ShowRepairUI(lineData);
     }
+
+    private void ApplyAdaptiveDifficulty()
+    {
+        if (!useAdaptiveDifficulty)
+        {
+            return;
+        }
+
+        int difficulty = ChapterDifficulty.GetDifficulty(assessmentChapter);
+        string difficultyName;
+
+        if (difficulty == 0)
+        {
+            difficultyName = "Easy";
+
+            startingTimeSeconds *= 1.5f;
+            penaltyFraction *= 0.5f;
+            wrongTokenPenaltyFraction *= 0.5f;
+        }
+        else if (difficulty == 1)
+        {
+            difficultyName = "Normal";
+
+            startingTimeSeconds *= 1.25f;
+            penaltyFraction *= 0.75f;
+            wrongTokenPenaltyFraction *= 0.75f;
+        }
+        else
+        {
+            difficultyName = "Hard";
+
+            // Keep existing Inspector values. DO NOT CHANGE IT.
+        }
+
+        Debug.Log(
+            "Repair Syntax | Chapter " + assessmentChapter +
+            " | Performance: " +
+            ChapterDifficulty.GetPerformance(assessmentChapter).ToString("F1") +
+            "% | Difficulty: " + difficultyName +
+            " | Starting Time: " + startingTimeSeconds +
+            " | Valid-Line Penalty: " + (penaltyFraction * 100f) + "%" +
+            " | Wrong-Token Penalty: " +
+            (wrongTokenPenaltyFraction * 100f) + "%"
+        );
+    }
+
+
 }
