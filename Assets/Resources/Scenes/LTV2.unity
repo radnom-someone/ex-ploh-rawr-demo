@@ -1091,7 +1091,7 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-      - m_Target: {fileID: 422190116}
+      - m_Target: {fileID: 285723742}
         m_TargetAssemblyTypeName: Cutscene, Assembly-CSharp
         m_MethodName: PlayCutscene
         m_Mode: 1
@@ -5460,8 +5460,8 @@ MonoBehaviour:
     autoAdvanceDialogue: 0
     speakerTarget: 0
     speakerNPC: {fileID: 0}
-    voiceLine: {fileID: 0}
-    voiceVolume: 0
+    voiceLine: {fileID: 8300000, guid: e2410615ee52d3248ba8ec26dad169c4, type: 3}
+    voiceVolume: 1
     destination: {fileID: 1424147691}
     moveSpeed: 0
     stoppingDistance: 0
@@ -5480,8 +5480,8 @@ MonoBehaviour:
     autoAdvanceDialogue: 0
     speakerTarget: 0
     speakerNPC: {fileID: 0}
-    voiceLine: {fileID: 0}
-    voiceVolume: 0
+    voiceLine: {fileID: 8300000, guid: e0261560068a1544c9bda57e094dcee9, type: 3}
+    voiceVolume: 1
     destination: {fileID: 0}
     moveSpeed: 0
     stoppingDistance: 0
@@ -18990,7 +18990,7 @@ MonoBehaviour:
     speakerTarget: 0
     speakerNPC: {fileID: 0}
     voiceLine: {fileID: 8300000, guid: 4f4e350d6b1bb1f45abad12a41357082, type: 3}
-    voiceVolume: 0
+    voiceVolume: 1
     destination: {fileID: 0}
     moveSpeed: 0
     stoppingDistance: 0
@@ -19010,7 +19010,7 @@ MonoBehaviour:
     speakerTarget: 0
     speakerNPC: {fileID: 0}
     voiceLine: {fileID: 0}
-    voiceVolume: 0
+    voiceVolume: 1
     destination: {fileID: 0}
     moveSpeed: 0
     stoppingDistance: 0
@@ -19030,7 +19030,7 @@ MonoBehaviour:
     speakerTarget: 0
     speakerNPC: {fileID: 0}
     voiceLine: {fileID: 8300000, guid: 5d84065aeb010724b91f932bce287a64, type: 3}
-    voiceVolume: 0
+    voiceVolume: 1
     destination: {fileID: 0}
     moveSpeed: 0
     stoppingDistance: 0
@@ -19243,6 +19243,18 @@ PrefabInstance:
     - target: {fileID: 1614889766886524709, guid: 359446a29161c8a4186a8538bf18a7c3, type: 3}
       propertyPath: m_LocalPosition.y
       value: -0.394
+      objectReference: {fileID: 0}
+    - target: {fileID: 1848311541257295529, guid: 359446a29161c8a4186a8538bf18a7c3, type: 3}
+      propertyPath: newColor.b
+      value: 0.23584908
+      objectReference: {fileID: 0}
+    - target: {fileID: 1848311541257295529, guid: 359446a29161c8a4186a8538bf18a7c3, type: 3}
+      propertyPath: newColor.g
+      value: 0.23584908
+      objectReference: {fileID: 0}
+    - target: {fileID: 1848311541257295529, guid: 359446a29161c8a4186a8538bf18a7c3, type: 3}
+      propertyPath: newColor.r
+      value: 0.23584908
       objectReference: {fileID: 0}
     - target: {fileID: 1962593911484496824, guid: 359446a29161c8a4186a8538bf18a7c3, type: 3}
       propertyPath: m_LocalPosition.y
