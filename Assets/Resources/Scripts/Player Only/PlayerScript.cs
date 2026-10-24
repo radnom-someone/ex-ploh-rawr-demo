@@ -9,6 +9,8 @@ public class PlayerInteract : MonoBehaviour
     public static GameObject PLAYER;
     public static string GENDER;
 
+    [SerializeField] private bool isExplorationScene = false;
+
 
     private GameObject target;
     private NPC NPCscript;
@@ -34,7 +36,6 @@ public class PlayerInteract : MonoBehaviour
     public MobileController mobileController;
     public Animator animator;
     // </Movement>
-
 
     void Start()
     {
@@ -74,7 +75,10 @@ public class PlayerInteract : MonoBehaviour
 
         // only in Non-Minigame, InGame-Scene
 
-        if (SceneManager.GetActiveScene().name == "InGame" || SceneManager.GetActiveScene().name == "Tutorial") {
+        if (SceneManager.GetActiveScene().name == "InGame" ||
+    SceneManager.GetActiveScene().name == "Tutorial" ||
+    SceneManager.GetActiveScene().name == "LTV2")
+        {
             buttonInteract = GameObject.FindGameObjectWithTag("UI_Interact").GetComponent<Button>();
             inputField = GameObject.FindGameObjectWithTag("UI_Dialogue").GetComponent<TMP_InputField>();
 
@@ -87,9 +91,10 @@ public class PlayerInteract : MonoBehaviour
             PlayerInteract.UI_DIALOGUE_NEXT = GameObject.FindGameObjectWithTag("UI_DialogueNext").GetComponent<Button>();
 
             //GameObject.FindGameObjectWithTag("Canvas_Terminal").GetComponent<Canvas>().enabled = false;
-            
+
             // do we need terminals at the Tutorial-Scene? if so, copy from the InGame-Scene
-            if (SceneManager.GetActiveScene().name == "InGame") {
+            if (SceneManager.GetActiveScene().name == "InGame" || SceneManager.GetActiveScene().name == "LTV2")
+            {
                 GameObject.Find("Terminal Multiple").GetComponent<Canvas>().enabled = false;
                 GameObject.Find("Terminal Identify").GetComponent<Canvas>().enabled = false;
                 GameObject.Find("Terminal Trivia").GetComponent<Canvas>().enabled = false;
@@ -101,6 +106,7 @@ public class PlayerInteract : MonoBehaviour
         }
         
         GameObject.FindGameObjectWithTag("Canvas_Player").GetComponent<Canvas>().enabled = true;
+
     }
 
     void Update()

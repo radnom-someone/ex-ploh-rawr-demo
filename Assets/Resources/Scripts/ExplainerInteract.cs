@@ -50,14 +50,15 @@ public class ExplainerInteract : NPC
         Speak(dialogue[index], true);
         nextDialogueTime = Time.unscaledTime + nextDialogueCooldown;
 
-        if (index >= dialogue.Count - 1) // explaining done!
+        if (index >= dialogue.Count - 1)
         {
             PlayerInteract.UI_DIALOGUE_NEXT.gameObject.SetActive(false);
-            PlayerInteract.UI_DIALOGUE_PREV.gameObject.SetActive(true);
+            PlayerInteract.UI_DIALOGUE_PREV.gameObject.SetActive(false);
             PlayerInteract.UI_INTERACT.gameObject.SetActive(true);
             PlayerInteract.UI_JOYSTICK.gameObject.SetActive(true);
         }
-        if (index != 0) {
+        else
+        {
             PlayerInteract.UI_DIALOGUE_PREV.gameObject.SetActive(true);
         }
 

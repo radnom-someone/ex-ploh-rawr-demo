@@ -119,6 +119,67 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1001 &1932955
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 3526131139060138447, guid: 524fb8b3a8d81134f8e8ba3e96b60aba, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 632.94946
+      objectReference: {fileID: 0}
+    - target: {fileID: 3526131139060138447, guid: 524fb8b3a8d81134f8e8ba3e96b60aba, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 210.22273
+      objectReference: {fileID: 0}
+    - target: {fileID: 3526131139060138447, guid: 524fb8b3a8d81134f8e8ba3e96b60aba, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3526131139060138447, guid: 524fb8b3a8d81134f8e8ba3e96b60aba, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3526131139060138447, guid: 524fb8b3a8d81134f8e8ba3e96b60aba, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3526131139060138447, guid: 524fb8b3a8d81134f8e8ba3e96b60aba, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3526131139060138447, guid: 524fb8b3a8d81134f8e8ba3e96b60aba, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3526131139060138447, guid: 524fb8b3a8d81134f8e8ba3e96b60aba, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3526131139060138447, guid: 524fb8b3a8d81134f8e8ba3e96b60aba, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3526131139060138447, guid: 524fb8b3a8d81134f8e8ba3e96b60aba, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3562222347807708148, guid: 524fb8b3a8d81134f8e8ba3e96b60aba, type: 3}
+      propertyPath: freezeTimeInMenus
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8308762091033415819, guid: 524fb8b3a8d81134f8e8ba3e96b60aba, type: 3}
+      propertyPath: m_Name
+      value: PauseMenu
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 524fb8b3a8d81134f8e8ba3e96b60aba, type: 3}
 --- !u!1 &2964332
 GameObject:
   m_ObjectHideFlags: 0
@@ -296,6 +357,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6b86a251304623342b840a1b8060668a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerInteract
+  isExplorationScene: 0
   SPEED: 6
   isMirrored: 0
   characterController: {fileID: 9390044}
@@ -1503,6 +1565,26 @@ MonoBehaviour:
     targetAlpha: 0
     fadeDuration: 0
     targetCamera: {fileID: 0}
+    onActionInvoked:
+      m_PersistentCalls:
+        m_Calls: []
+  - actionType: 5
+    characterTarget: 0
+    npc: {fileID: 1588230881}
+    dialogue: A data center employee has appeared! Time for some convincing to do!
+    autoAdvanceDialogue: 1
+    speakerTarget: 0
+    speakerNPC: {fileID: 0}
+    voiceLine: {fileID: 8300000, guid: fca858ad59d3a6242bb4dd74ee78c545, type: 3}
+    voiceVolume: 1
+    destination: {fileID: 1375168246}
+    moveSpeed: 0
+    stoppingDistance: 0
+    faceTarget: {fileID: 0}
+    waitSeconds: 2
+    targetAlpha: 0
+    fadeDuration: 0
+    targetCamera: {fileID: 330585545}
     onActionInvoked:
       m_PersistentCalls:
         m_Calls: []
@@ -4747,7 +4829,7 @@ Canvas:
   m_GameObject: {fileID: 363489127}
   m_Enabled: 0
   serializedVersion: 3
-  m_RenderMode: 1
+  m_RenderMode: 0
   m_Camera: {fileID: 330585545}
   m_PlaneDistance: 1
   m_PixelPerfect: 0
@@ -16021,6 +16103,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6978650055659049299, guid: 0a6af5bbf2ab7ff4e981dcbf0affcc88, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -20124,7 +20210,7 @@ Canvas:
   m_GameObject: {fileID: 1861380382}
   m_Enabled: 0
   serializedVersion: 3
-  m_RenderMode: 1
+  m_RenderMode: 0
   m_Camera: {fileID: 330585545}
   m_PlaneDistance: 1
   m_PixelPerfect: 0
@@ -20434,7 +20520,7 @@ Canvas:
   m_GameObject: {fileID: 1927754126}
   m_Enabled: 0
   serializedVersion: 3
-  m_RenderMode: 1
+  m_RenderMode: 0
   m_Camera: {fileID: 330585545}
   m_PlaneDistance: 1
   m_PixelPerfect: 0
@@ -20974,7 +21060,7 @@ Canvas:
   m_GameObject: {fileID: 1976493619}
   m_Enabled: 0
   serializedVersion: 3
-  m_RenderMode: 1
+  m_RenderMode: 0
   m_Camera: {fileID: 330585545}
   m_PlaneDistance: 1
   m_PixelPerfect: 0
@@ -21357,7 +21443,7 @@ Canvas:
   m_GameObject: {fileID: 2006422695}
   m_Enabled: 0
   serializedVersion: 3
-  m_RenderMode: 1
+  m_RenderMode: 0
   m_Camera: {fileID: 330585545}
   m_PlaneDistance: 1
   m_PixelPerfect: 0
@@ -23337,6 +23423,7 @@ SceneRoots:
   - {fileID: 2031506721}
   - {fileID: 911131851}
   - {fileID: 2110520069}
+  - {fileID: 1932955}
   - {fileID: 1471557544}
   - {fileID: 2068816728}
   - {fileID: 787315811}
